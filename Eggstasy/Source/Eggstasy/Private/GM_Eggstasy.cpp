@@ -3,3 +3,6 @@
 
 #include "GM_Eggstasy.h"
 
+AGM_Eggstasy::AGM_Eggstasy()
+{
+}

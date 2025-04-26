@@ -8,6 +8,7 @@
 #include "Camera/CameraComponent.h"
 #include "InputAction.h"
 #include "InputMappingContext.h"
+#include "GM_Eggstasy.h"
 
 // Sets default values
 APlayerCharacter::APlayerCharacter()
@@ -61,7 +62,8 @@ void APlayerCharacter::SetupPlayerInputComponent(UInputComponent* PlayerInputCom
 		Input->BindAction(LookAction, ETriggerEvent::Triggered, this, &APlayerCharacter::Look);
 		Input->BindAction(SprintAction, ETriggerEvent::Triggered, this, &APlayerCharacter::SprintStart);
 		Input->BindAction(SprintAction, ETriggerEvent::Completed, this, &APlayerCharacter::SprintEnd);
-		Input->BindAction(InteractAction, ETriggerEvent::Triggered, this, &APlayerCharacter::Interact);
+		Input->BindAction(InteractAction, ETriggerEvent::Started, this, &APlayerCharacter::Interact);
+		Input->BindAction(PauseAction, ETriggerEvent::Started, this, &APlayerCharacter::Pause);
 	}
 }
 
@@ -102,6 +104,14 @@ void APlayerCharacter::Interact()
 	FVector TraceStart = GetActorLocation();
 	float MaxInteractRange = 268.f;
 	TryInteract(TraceStart, MaxInteractRange);
+}
+
+void APlayerCharacter::Pause()
+{
+	if (auto gameModeRef = Cast<AGM_Eggstasy>(GetWorld()->GetAuthGameMode()))
+	{
+		gameModeRef->OpenPauseMenu();
+	}
 }
 
 bool APlayerCharacter::TryInteract(FVector TraceStart, float MaxInteractRange)

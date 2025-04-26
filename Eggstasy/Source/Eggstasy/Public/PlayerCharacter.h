@@ -39,6 +39,9 @@ protected:
 	UPROPERTY(EditAnywhere, Category = "EnhancedInput")
 	UInputAction* InteractAction;
 
+	UPROPERTY(EditAnywhere, Category = "EnhancedInput")
+	UInputAction* PauseAction;
+
 	UPROPERTY(EditAnywhere, BlueprintReadWrite)
 	UCameraComponent* Camera;
 
@@ -60,6 +63,7 @@ protected:
 	void SprintStart();
 	void SprintEnd();
 	void Interact();
+	void Pause();
 
 public:
 	UFUNCTION(BlueprintCallable, Category = "Interact")
