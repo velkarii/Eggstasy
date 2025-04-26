@@ -100,7 +100,7 @@ void APlayerCharacter::SprintEnd()
 void APlayerCharacter::Interact()
 {
 	FVector TraceStart = GetActorLocation();
-	float MaxInteractRange = 300.f;
+	float MaxInteractRange = 250.f;
 	TryInteract(TraceStart, MaxInteractRange);
 }
 
