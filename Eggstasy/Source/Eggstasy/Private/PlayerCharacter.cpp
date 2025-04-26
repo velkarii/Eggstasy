@@ -19,14 +19,18 @@ APlayerCharacter::APlayerCharacter()
 
 	CameraBoom = CreateDefaultSubobject<USpringArmComponent>("CameraBoom");
 	CameraBoom->SetupAttachment(RootComponent);
+	CameraBoom->TargetArmLength = 350.f;
+	CameraBoom->bUsePawnControlRotation = true;
+	CameraBoom->bDoCollisionTest = false;
 
 	Camera = CreateDefaultSubobject<UCameraComponent>("Camera");
 	Camera->SetupAttachment(CameraBoom);
-	Camera->bUsePawnControlRotation = true;
+	Camera->bUsePawnControlRotation = false;
+
 
 	TargetOffset = FVector::ZeroVector;
 	DefaultBoomOffset = FVector(0.f, 0.f, 0.f);
-	CameraBoomOffset = FVector(20.f, 0.f, 0.f);
+	CameraBoomOffset = FVector(15.f, 0.f, 0.f);
 }
 
 // Called when the game starts or when spawned
