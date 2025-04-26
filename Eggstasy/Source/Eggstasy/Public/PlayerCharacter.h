@@ -49,18 +49,8 @@ protected:
 	UPROPERTY(EditAnywhere, BlueprintReadWrite)
 	USpringArmComponent* CameraBoom;
 
-	UPROPERTY(EditAnywhere, BlueprintReadWrite)
-	FVector DefaultBoomOffset;
-
-	UPROPERTY(EditAnywhere, BlueprintReadWrite)
-	FVector CameraBoomOffset;
-
-	UPROPERTY(EditAnywhere, BlueprintReadWrite)
-	FVector TargetOffset;
-
 	void Move(const FInputActionValue& Value);
 	void Look(const FInputActionValue& Value);
-	void UpdateSocketOffset(float DeltaTime);
 	void SprintStart();
 	void SprintEnd();
 };
