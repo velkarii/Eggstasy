@@ -8,6 +8,7 @@
 #include "Camera/CameraComponent.h"
 #include "InputAction.h"
 #include "InputMappingContext.h"
+#include "GM_Eggstasy.h"
 
 // Sets default values
 APlayerCharacter::APlayerCharacter()
@@ -18,10 +19,18 @@ APlayerCharacter::APlayerCharacter()
 
 	CameraBoom = CreateDefaultSubobject<USpringArmComponent>("CameraBoom");
 	CameraBoom->SetupAttachment(RootComponent);
+	CameraBoom->TargetArmLength = 350.f;
+	CameraBoom->bUsePawnControlRotation = true;
+	CameraBoom->bDoCollisionTest = false;
 
 	Camera = CreateDefaultSubobject<UCameraComponent>("Camera");
 	Camera->SetupAttachment(CameraBoom);
-	Camera->bUsePawnControlRotation = true;
+	Camera->bUsePawnControlRotation = false;
+
+
+	TargetOffset = FVector::ZeroVector;
+	DefaultBoomOffset = FVector(0.f, 0.f, 0.f);
+	CameraBoomOffset = FVector(15.f, 0.f, 0.f);
 }
 
 // Called when the game starts or when spawned
@@ -42,6 +51,8 @@ void APlayerCharacter::BeginPlay()
 void APlayerCharacter::Tick(float DeltaTime)
 {
 	Super::Tick(DeltaTime);
+
+	UpdateSocketOffset(DeltaTime);
 }
 
 // Called to bind functionality to input
@@ -56,6 +67,7 @@ void APlayerCharacter::SetupPlayerInputComponent(UInputComponent* PlayerInputCom
 		Input->BindAction(SprintAction, ETriggerEvent::Triggered, this, &APlayerCharacter::SprintStart);
 		Input->BindAction(SprintAction, ETriggerEvent::Completed, this, &APlayerCharacter::SprintEnd);
 		Input->BindAction(InteractAction, ETriggerEvent::Started, this, &APlayerCharacter::Interact);
+		Input->BindAction(PauseAction, ETriggerEvent::Started, this, &APlayerCharacter::Pause);
 	}
 }
 
@@ -81,11 +93,13 @@ void APlayerCharacter::Look(const FInputActionValue& Value)
 
 void APlayerCharacter::SprintStart()
 {
+	TargetOffset = CameraBoomOffset;
 	GetCharacterMovement()->MaxWalkSpeed = 500.f;
 }
 
 void APlayerCharacter::SprintEnd()
 {
+	TargetOffset = DefaultBoomOffset;
 	GetCharacterMovement()->MaxWalkSpeed = 350.f;
 }
 
@@ -94,6 +108,14 @@ void APlayerCharacter::Interact()
 	FVector TraceStart = GetActorLocation();
 	float MaxInteractRange = 268.f;
 	TryInteract(TraceStart, MaxInteractRange);
+}
+
+void APlayerCharacter::Pause()
+{
+	if (auto gameModeRef = Cast<AGM_Eggstasy>(GetWorld()->GetAuthGameMode()))
+	{
+		gameModeRef->OpenPauseMenu();
+	}
 }
 
 bool APlayerCharacter::TryInteract(FVector TraceStart, float MaxInteractRange)
@@ -112,4 +134,11 @@ bool APlayerCharacter::TryInteract(FVector TraceStart, float MaxInteractRange)
 		OnInteractableHit(HitActor);
 	}
 	return bHasHit;
+}
+
+void APlayerCharacter::UpdateSocketOffset(float DeltaTime)
+{
+	FVector CurrentOffset = CameraBoom->SocketOffset;
+	FVector NewOffset = FMath::VInterpTo(CurrentOffset, TargetOffset, DeltaTime, 2.f);
+	CameraBoom->SocketOffset = NewOffset;
 }

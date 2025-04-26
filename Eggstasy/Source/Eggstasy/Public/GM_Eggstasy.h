@@ -14,4 +14,9 @@ class EGGSTASY_API AGM_Eggstasy : public AGameModeBase
 {
 	GENERATED_BODY()
 	
+public:
+	AGM_Eggstasy();
+
+	UFUNCTION(BlueprintImplementableEvent)
+	void OpenPauseMenu();
 };
