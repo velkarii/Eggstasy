@@ -22,10 +22,6 @@ APlayerCharacter::APlayerCharacter()
 	Camera = CreateDefaultSubobject<UCameraComponent>("Camera");
 	Camera->SetupAttachment(CameraBoom);
 	Camera->bUsePawnControlRotation = true;
-
-	TargetOffset = FVector::ZeroVector;
-	DefaultBoomOffset = FVector(0.f, 0.f, 0.f);
-	CameraBoomOffset = FVector(20.f, 0.f, 0.f);
 }
 
 // Called when the game starts or when spawned
@@ -46,8 +42,6 @@ void APlayerCharacter::BeginPlay()
 void APlayerCharacter::Tick(float DeltaTime)
 {
 	Super::Tick(DeltaTime);
-
-	UpdateSocketOffset(DeltaTime);
 }
 
 // Called to bind functionality to input
@@ -61,7 +55,7 @@ void APlayerCharacter::SetupPlayerInputComponent(UInputComponent* PlayerInputCom
 		Input->BindAction(LookAction, ETriggerEvent::Triggered, this, &APlayerCharacter::Look);
 		Input->BindAction(SprintAction, ETriggerEvent::Triggered, this, &APlayerCharacter::SprintStart);
 		Input->BindAction(SprintAction, ETriggerEvent::Completed, this, &APlayerCharacter::SprintEnd);
-		Input->BindAction(InteractAction, ETriggerEvent::Triggered, this, &APlayerCharacter::Interact);
+		Input->BindAction(InteractAction, ETriggerEvent::Started, this, &APlayerCharacter::Interact);
 	}
 }
 
@@ -87,13 +81,11 @@ void APlayerCharacter::Look(const FInputActionValue& Value)
 
 void APlayerCharacter::SprintStart()
 {
-	TargetOffset = CameraBoomOffset;
 	GetCharacterMovement()->MaxWalkSpeed = 500.f;
 }
 
 void APlayerCharacter::SprintEnd()
 {
-	TargetOffset = DefaultBoomOffset;
 	GetCharacterMovement()->MaxWalkSpeed = 350.f;
 }
 
@@ -120,11 +112,4 @@ bool APlayerCharacter::TryInteract(FVector TraceStart, float MaxInteractRange)
 		OnInteractableHit(HitActor);
 	}
 	return bHasHit;
-}
-
-void APlayerCharacter::UpdateSocketOffset(float DeltaTime)
-{
-	FVector CurrentOffset = CameraBoom->SocketOffset;
-	FVector NewOffset = FMath::VInterpTo(CurrentOffset, TargetOffset, DeltaTime, 2.f);
-	CameraBoom->SocketOffset = NewOffset;
 }
