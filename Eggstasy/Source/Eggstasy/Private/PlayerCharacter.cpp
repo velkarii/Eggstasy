@@ -1,22 +1,21 @@
-// Fill out your copyright notice in the Description page of Project Settings.
-
-
 #include "PlayerCharacter.h"
+#include "CoreMinimal.h"
 #include "EnhancedInputComponent.h"
 #include "EnhancedInputSubsystems.h"
 #include "Components/InputComponent.h"
 #include "GameFramework/SpringArmComponent.h"
 #include "GameFramework/CharacterMovementComponent.h"
-
+#include "Camera/CameraComponent.h"
+#include "InputAction.h"
+#include "InputMappingContext.h"
 
 // Sets default values
 APlayerCharacter::APlayerCharacter()
 {
- 	// Set this character to call Tick() every frame.  You can turn this off to improve performance if you don't need it.
 	PrimaryActorTick.bCanEverTick = true;
 
 	GetCharacterMovement()->MaxWalkSpeed = 350.f;
-	
+
 	CameraBoom = CreateDefaultSubobject<USpringArmComponent>("CameraBoom");
 	CameraBoom->SetupAttachment(RootComponent);
 
@@ -24,6 +23,9 @@ APlayerCharacter::APlayerCharacter()
 	Camera->SetupAttachment(CameraBoom);
 	Camera->bUsePawnControlRotation = true;
 
+	TargetOffset = FVector::ZeroVector;
+	DefaultBoomOffset = FVector(0.f, 0.f, 0.f);
+	CameraBoomOffset = FVector(20.f, 0.f, 0.f);
 }
 
 // Called when the game starts or when spawned
@@ -38,13 +40,14 @@ void APlayerCharacter::BeginPlay()
 			Subsystem->AddMappingContext(InputMapping, 0);
 		}
 	}
-	
 }
 
 // Called every frame
 void APlayerCharacter::Tick(float DeltaTime)
 {
 	Super::Tick(DeltaTime);
+
+	UpdateSocketOffset(DeltaTime);
 }
 
 // Called to bind functionality to input
@@ -58,8 +61,8 @@ void APlayerCharacter::SetupPlayerInputComponent(UInputComponent* PlayerInputCom
 		Input->BindAction(LookAction, ETriggerEvent::Triggered, this, &APlayerCharacter::Look);
 		Input->BindAction(SprintAction, ETriggerEvent::Triggered, this, &APlayerCharacter::SprintStart);
 		Input->BindAction(SprintAction, ETriggerEvent::Completed, this, &APlayerCharacter::SprintEnd);
+		Input->BindAction(InteractAction, ETriggerEvent::Triggered, this, &APlayerCharacter::Interact);
 	}
-
 }
 
 void APlayerCharacter::Move(const FInputActionValue& Value)
@@ -73,7 +76,6 @@ void APlayerCharacter::Move(const FInputActionValue& Value)
 	AddMovementInput(ForwardDirection, MovementVector.Y);
 	const FVector RightDirection = FRotationMatrix(YawRotation).GetUnitAxis(EAxis::Y);
 	AddMovementInput(RightDirection, MovementVector.X);
-
 }
 
 void APlayerCharacter::Look(const FInputActionValue& Value)
@@ -85,10 +87,44 @@ void APlayerCharacter::Look(const FInputActionValue& Value)
 
 void APlayerCharacter::SprintStart()
 {
+	TargetOffset = CameraBoomOffset;
 	GetCharacterMovement()->MaxWalkSpeed = 500.f;
 }
 
 void APlayerCharacter::SprintEnd()
 {
+	TargetOffset = DefaultBoomOffset;
 	GetCharacterMovement()->MaxWalkSpeed = 350.f;
+}
+
+void APlayerCharacter::Interact()
+{
+	FVector TraceStart = GetActorLocation();
+	float MaxInteractRange = 268.f;
+	TryInteract(TraceStart, MaxInteractRange);
+}
+
+bool APlayerCharacter::TryInteract(FVector TraceStart, float MaxInteractRange)
+{
+	FHitResult LocalHit;
+	FVector TraceEnd = TraceStart + (GetActorForwardVector() * MaxInteractRange);
+	FCollisionQueryParams Params;
+	Params.AddIgnoredActor(this);
+
+	bool bHasHit = GetWorld()->LineTraceSingleByChannel(LocalHit, TraceStart, TraceEnd, ECC_GameTraceChannel1, Params);
+
+	if (bHasHit)
+	{
+		AActor* HitActor = LocalHit.GetActor();
+
+		OnInteractableHit(HitActor);
+	}
+	return bHasHit;
+}
+
+void APlayerCharacter::UpdateSocketOffset(float DeltaTime)
+{
+	FVector CurrentOffset = CameraBoom->SocketOffset;
+	FVector NewOffset = FMath::VInterpTo(CurrentOffset, TargetOffset, DeltaTime, 2.f);
+	CameraBoom->SocketOffset = NewOffset;
 }
