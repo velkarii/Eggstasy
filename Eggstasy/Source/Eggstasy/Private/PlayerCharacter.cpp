@@ -15,7 +15,7 @@ APlayerCharacter::APlayerCharacter()
 {
 	PrimaryActorTick.bCanEverTick = true;
 
-	GetCharacterMovement()->MaxWalkSpeed = 350.f;
+	GetCharacterMovement()->MaxWalkSpeed = 500.f;
 
 	CameraBoom = CreateDefaultSubobject<USpringArmComponent>("CameraBoom");
 	CameraBoom->SetupAttachment(RootComponent);
@@ -94,13 +94,13 @@ void APlayerCharacter::Look(const FInputActionValue& Value)
 void APlayerCharacter::SprintStart()
 {
 	TargetOffset = CameraBoomOffset;
-	GetCharacterMovement()->MaxWalkSpeed = 500.f;
+	GetCharacterMovement()->MaxWalkSpeed = 750.f;
 }
 
 void APlayerCharacter::SprintEnd()
 {
 	TargetOffset = DefaultBoomOffset;
-	GetCharacterMovement()->MaxWalkSpeed = 350.f;
+	GetCharacterMovement()->MaxWalkSpeed = 500.f;
 }
 
 void APlayerCharacter::Interact()
